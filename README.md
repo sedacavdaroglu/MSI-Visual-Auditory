@@ -1,1 +1,1 @@
-# MSI-Visual-Auditory
+These scripts create an auditory, visual and auditory/visual (simultaneous) non-symbolic numerosity comparison tasks. The displayed numerosity is to be compared with the numerosity 10. For the simultaneous task, a device that distributes the auditory output from the computer between a speaker and a LED is needed. These tasks were created for a multisensory integration experiment with numbers.
