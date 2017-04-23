@@ -5,7 +5,7 @@ function create_sound_files()
 
 %sound parameter
 %Fs = 9000;      %# Samples per second
-toneFreq = 400;  %# Tone frequency, in Hertz
+toneFreq = 20000;  %# Tone frequency, in Hertz
 %vol = 1;
 
 %get the durations, intervals and the order of numbers to be used
@@ -35,7 +35,7 @@ for i = 1:length(numbers)
             specs(j,3) = ints1(j,i);
         end;
     end;
-    fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(numbers(i)),'_set_',int2str(set_info(i)),'_1.wav');
+    fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(numbers(i)),'_set_',int2str(set_info(i)),'_1.wav');
     create_beep_file(specs,fileName);
     
     
@@ -47,7 +47,7 @@ for i = 1:length(numbers)
             specs(j,3) = ints2(j,i);
         end;
     end;
-    fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(numbers(i)),'_set_',int2str(set_info(i)),'_2.wav');
+    fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(numbers(i)),'_set_',int2str(set_info(i)),'_2.wav');
     create_beep_file(specs,fileName);
     
     
@@ -60,7 +60,7 @@ for i = 1:length(numbers)
             specs(j,3) = ints3(j,i);
         end;
     end;
-    fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(numbers(i)),'_set_',int2str(set_info(i)),'_3.wav');
+    fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(numbers(i)),'_set_',int2str(set_info(i)),'_3.wav');
     create_beep_file(specs,fileName);
     
     
@@ -73,7 +73,7 @@ for i = 1:length(numbers)
             specs(j,3) = ints4(j,i);
         end;
     end;
-    fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(numbers(i)),'_set_',int2str(set_info(i)),'_4.wav');
+    fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(numbers(i)),'_set_',int2str(set_info(i)),'_4.wav');
     create_beep_file(specs,fileName);
     
 end;

@@ -1,8 +1,13 @@
 function MultiSens()
+ 
+%This function finds the weber fraction
+%of numerosity discrimination in visual domain
+%using method of constant stimuli
+
+%Author: Seda Cavdaroglu
+%Date: 06.09.2013
 
  
-
-
 %numbers
 ns = [5 6 7 8 9 11 13 15 17 20];
 refNum = 10; %the reference number to be compared
@@ -90,12 +95,15 @@ answer = inputdlg(prompt,dlg_title,num_lines,def);
 subNo =str2num(char(answer(1)));
 
 %open the text file to write the output
-%subj_file = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/log_files/subject_',num2str(subNo),'_WFlog.txt');
-subj_file = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/log_files/subject_',num2str(subNo),'_WFlog.txt');
+%subj_file = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/log_files/subject_',num2str(subNo),'_WFlog.txt');
+%fid = fopen(subj_file,'at');
+%subj_resp_file = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/log_files/vis_subject_',num2str(subNo),'.txt');
+%fid2 = fopen(subj_resp_file,'at');
+subj_file = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/log_files/subject_',num2str(subNo),'_WFlog.txt');
 fid = fopen(subj_file,'at');
-%subj_resp_file = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/log_files/aud_subject_',num2str(subNo),'.txt');
-subj_resp_file = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/log_files/aud_subject_',num2str(subNo),'.txt');
+subj_resp_file = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/log_files/vis_subject_',num2str(subNo),'.txt');
 fid2 = fopen(subj_resp_file,'at');
+
 
 
 %define colors
@@ -118,7 +126,7 @@ Priority(MaxPriority(w));
 
 
 kc_esc = KbName('Escape');
-modality = 2; % 2 = auditory
+modality = 1; % 1   = visual
 
 %screen parameters
 % Do initial flip...
@@ -131,11 +139,12 @@ kc_lctrl = KbName('Control_L');
 kc_rctrl = KbName('Control_R');
 
 %bell ring sound
-%bellFile = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/bell.wav');
-bellFile = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/sound_files/bell_1_5sec.wav');
-%answerBell = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/answer_bell.wav');
+%bellFile = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/bell.wav');
+bellFile = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/sound_files/bell_1_5sec.wav');
+%answerBell = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/answer_bell.wav');
 
-silence = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/sound_files/silence.wav');
+silence = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/sound_files/silence.wav');
+
 
 %wait for a key press (space bar) to start the experiment
 [keyIsDown secs keycodes] = KbCheck();
@@ -172,12 +181,13 @@ y2 = 0.*y(:,2);
 y3 = [y2 y1];
 p2 = audioplayer(y3,Fs);
 
-%This is new code from Dany to add the silence code
+%This is the new code from dany to add silence code
 [y, Fs] = audioread(silence);
 y1 = 10.*y(:,2);
-y2 = 0.*y(:,2);
+y2 = 0.*y(:,2); 
 y3 = [y2 y1];
 pSilence = audioplayer(y3,Fs);
+
 
 for i = 1:totalReps
 
@@ -206,16 +216,17 @@ for i = 1:totalReps
         
         
         if nums(i) > refNum        
-            %fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
-            fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
-            fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
-            %fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
+            %fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
+            %fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
+            fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
+            fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
         else
-            %fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
-            fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
-            fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
-            %fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
+            %fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
+            %fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
+            fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
+            fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
         end    
+        %end    
             
         
         [y, Fs] = audioread(fileName);
@@ -262,10 +273,8 @@ for i = 1:totalReps
 %         PsychPortAudio('Stop', MySongHandle);
 %         PsychPortAudio('Close', MySongHandle);
 
-        %playblocking(p1);
         playblocking(pSilence);
         pause(0.2);
-        
         
         
         %play the second sound-reference sound
@@ -317,15 +326,16 @@ for i = 1:totalReps
         
         
         if nums(i) < refNum        
-            %fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
-            fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
-            fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
-            %fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
+            %fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
+            %fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
+            fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
+            fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
+            
         else
-            %fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
-            fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
-            fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
-            %fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/auditory/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
+            %fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
+            %fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visual/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
+            fileName2 = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/sound_files/number_',int2str(nums(i)),'_set_',int2str(sets1(index,counterOfSets1(index,1))),'_',int2str(sets2(index,counterOfSets2(index,1))),'.wav');
+            fileName = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/sound_files/number_',int2str(refNum),'_set_',int2str(rem(refNumSets1(i),4)+1),'_',int2str(rem(refNumSets2(i),4)+1),'.wav');
         end   
         [y, Fs] = audioread(fileName);        
         p3 = audioplayer(y,Fs);
@@ -348,8 +358,6 @@ for i = 1:totalReps
 %         PsychPortAudio('FillBuffer', MySongHandle, MySongData);
 %         
         
-       
-
         t_start = tic();
         playblocking(p3);
         if nums(i) < refNum
@@ -390,7 +398,6 @@ for i = 1:totalReps
 %         PsychPortAudio('FillBuffer', MySongHandle, MySongData);
         
         
-        %playblocking(p1);
         playblocking(pSilence);
         pause(0.2);
         
@@ -451,7 +458,7 @@ for i = 1:totalReps
                 pressed = 1;
                 sub_ans = 1; % 0 = left, 1 = right
                 %if larger number comes first
-                           if order(i) == 0
+                if order(i) == 0
                     sub_ans_corr_or_not = 0;  
                 else %if larger number comes second
                     sub_ans_corr_or_not = 1;
@@ -492,14 +499,14 @@ for i = 1:totalReps
         %wait for a key press (space bar) to start the experiment
         [keyIsDown secs keycodes] = KbCheck();
         while isempty(keycodes) || ~keycodes(kc_space)
-            Screen('DrawText', w, 'Sie k�nnen nun eine Pause machen...', center(1)-450, center(2),white);
-            Screen('DrawText', w, 'Drueck en Sie die Leertaste um mit dem Experiment fortzufahren...', center(1)-450, center(2)+50,white);
+            Screen('DrawText', w, 'Sie können nun eine Pause machen...', center(1)-450, center(2),white);
+            Screen('DrawText', w, 'Druecken Sie die Leertaste, um mit dem Experiment fortzufahren...', center(1)-450, center(2)+50,white);
              Screen('Flip', w);
             [keyIsDown secs keycodes] = KbCheck();
         end;
         expTimer = tic();
     end;
-      
+     
 end;
 
 

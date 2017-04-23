@@ -1,14 +1,9 @@
-function [WF_log]= WeberAnalysis_Palamedes()
+function drawWF()
 
-%Weber analysis-calculate weber fraction with reference numerosity of 10.
-%dat file in the form:
-% col 1:    number to be compared
-% col 2:    answer of the subject (corr = 1; wrong = 0)
-
+%draws the figures for overall weber fraction for 3 modalities
 %Author: Seda Cavdaroglu
-%Date: 19.09.2013
-subNo = [2,3,8,6,7,8,9,10,11,12,13,18,15,16,18,19];
-% subNo = [8,6,7,8,9,10,11,12,13,18,18,19];
+%Date: 10.09.2014
+subNo = [2,3,4,6,7,8,9,10,11,12,13,14,15,16,18,19];
 
 B = [5,6,7,8,9,11,13,15,17,20];
 type = 2;%1= linear, 2 = log scale
@@ -25,8 +20,6 @@ pse_sim = zeros(length(subNo),1);
 jnd_aud = zeros(length(subNo),1);
 jnd_vis = zeros(length(subNo),1);
 jnd_sim = zeros(length(subNo),1);
-gof = zeros(length(subNo),3);%holds the pDev values for each subjects goodness of fits
-corrRes = zeros(length(subNo),3);%holds the correlation coefficient between measured and fit values
 
 acc_aud = zeros(length(subNo),1);
 acc_vis = zeros(length(subNo),1);
@@ -54,7 +47,7 @@ for s = 1:length(subNo)
     subj_file_aud = strcat('C:\Users\cavdaros\Desktop\MultiSensory_Final\auditoryDany\log_files\aud_subject_',num2str(subNo(s)),'.txt');
     subj_file_sim = strcat('C:\Users\cavdaros\Desktop\MultiSensory_Final\simultaneousDany\log_files\sim_subject_',num2str(subNo(s)),'.txt');
     
-
+    
     fid_aud = fopen(subj_file_aud);
     A_aud = fscanf(fid_aud, '%g %g', [2 inf]);
     fclose(fid_aud);
@@ -166,23 +159,7 @@ for s = 1:length(subNo)
     acc_aud_pernum(s,:) = num_corr_resp_aud_pernum./num_total_resp_aud(:,s);
     acc_sim_pernum(s,:) = num_corr_resp_sim_pernum./num_total_resp_sim(:,s);
     
-    % arrange plot
-    %figure(1);
-    set(gcf,'NextPlot','add');
-    
-    subplot(5,5,s);
-    
-    set(gca,'FontSize',8);
-    if type == 1
-        axis([0 25 0 1]);
-        set(gca,'XTick',[5 10 15 20]);
-    else
-        axis([0 log10(25) 0 1]);
-        set(gca,'XTick',[log10(5) log10(10) log10(15) log10(20)]);
-    end;
-    
-    set(gca,'XTickLabel',{ '5' '10' '15' '20' });
-    
+
     
     %Palamedes function
     if type == 1
@@ -216,8 +193,6 @@ for s = 1:length(subNo)
     end
     
     
-%     disp(strcat('Weber Fraction in log scale for vision for subject',num2str(subNo(s))));
-%     disp(wf_vis(s,1));
     PropCorrectData = NumPos./OutOfNum;
     minStimLevels = 0;
     
@@ -225,34 +200,6 @@ for s = 1:length(subNo)
     %     StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
     %         min(StimLevels))./1000:max(StimLevels)];
     Fit = PF(paramsValues,StimLevelsFine);
-    [dev pDev devSim converged] = PAL_PFML_GoodnessOfFit(StimLevels, NumPos, OutOfNum,...
-        paramsValues, paramsFree, 4, PF);
-    Fit2 = PF(paramsValues,StimLevels);
-    x = [PropCorrectData' Fit2'];
-    [a,b] = corr(x);
-    corrRes(s,1) = a(1,2);
-    gof(s,1) = pDev;
-    
-    marker = 'db';
-    plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','b','MarkerEdgeColor','k','MarkerSize',6);
-    hold on;
-    plot(StimLevelsFine,Fit,'b','LineWidth',3);
-    
-    set(gca,'FontSize',8);
-    if type == 1
-        axis([0 25 0 1]);
-        set(gca,'XTick',[5 10 15 20]);
-    else
-        axis([0 log10(25) 0 1]);
-        set(gca,'XTick',[log10(5) log10(10) log10(15) log10(20)]);
-    end;
-    set(gca,'XTickLabel',{ '5' '10' '15' '20' });
-    
-    xlabel('Numbers');
-    ylabel('Portion of Greater Responses');
-    
-    % arrange plot
-    hold on;
     
     
     %Palamedes function
@@ -285,40 +232,13 @@ for s = 1:length(subNo)
         wf_aud(s,1) = jnd_aud(s,1)/10; 
     end
     
-%     disp(strcat('Weber Fraction in log scale for audition for subject',num2str(subNo(s))));
-%     disp(wf_aud(s,1));
+
     PropCorrectData = NumPos./OutOfNum;
     minStimLevels = 0;
     
     StimLevelsFine = [minStimLevels:(maxStimLevels-minStimLevels)./1000:maxStimLevels];
-    %     StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
-    %         min(StimLevels))./1000:max(StimLevels)];
+
     Fit = PF(paramsValues,StimLevelsFine);
-    
-    [dev pDev devSim converged] = PAL_PFML_GoodnessOfFit(StimLevels, NumPos, OutOfNum,...
-        paramsValues, paramsFree, 4, PF);
-    gof(s,2) = pDev;
-    Fit2 = PF(paramsValues,StimLevels);
-    x = [PropCorrectData' Fit2'];
-    [a,b] = corr(x);
-    corrRes(s,2) = a(1,2);
-    
-    marker = 'dr';
-    plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','r','MarkerEdgeColor','k','MarkerSize',6);
-    
-    hold on;
-    
-    plot(StimLevelsFine,Fit,'r','LineWidth',3);
-    
-    set(gca,'FontSize',8);
-    if type == 1
-        axis([0 25 0 1]);
-        set(gca,'XTick',[5 10 15 20]);
-    else
-        axis([0 log10(25) 0 1]);
-        set(gca,'XTick',[log10(5) log10(10) log10(15) log10(20)]);
-    end;
-    set(gca,'XTickLabel',{ '5' '10' '15' '20' });
     
     
     %Palamedes function
@@ -354,47 +274,15 @@ for s = 1:length(subNo)
     end
     
     
-%     disp(strcat('Weber Fraction in log scale for simultaneous for subject',num2str(subNo(s))));
-%     disp(wf_sim(s,1));
     PropCorrectData = NumPos./OutOfNum;
     minStimLevels = 0;
     
     StimLevelsFine = [minStimLevels:(maxStimLevels-minStimLevels)./1000:maxStimLevels];
-    %     StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
-    %         min(StimLevels))./1000:max(StimLevels)];
+
     Fit = PF(paramsValues,StimLevelsFine);
-    Fit2 = PF(paramsValues,StimLevels);
-    x = [PropCorrectData' Fit2'];
-    [a,b] = corr(x);
-    corrRes(s,3) = a(1,2);
     
-    [dev pDev devSim converged] = PAL_PFML_GoodnessOfFit(StimLevels, NumPos, OutOfNum,...
-        paramsValues, paramsFree, 4, PF);
-    gof(s,3) = pDev;
     
-    marker = 'db';
-    plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',6);
-    hold on;
-    plot(StimLevelsFine,Fit,'g','LineWidth',3);
-    
-    set(gca,'FontSize',8);
-    if type == 1
-        axis([0 25 0 1]);
-        set(gca,'XTick',[5 10 15 20]);
-    else
-        axis([0 log10(25) 0 1]);
-        set(gca,'XTick',[log10(5) log10(10) log10(15) log10(20)]);
-    end;
-    set(gca,'XTickLabel',{ '5' '10' '15' '20' });
-    
-    xlabel('Numbers');
-    ylabel('Portion of Greater Responses');
-    
-    % arrange plot
-    hold on;
-    
-    title(strcat('Subject ',num2str(subNo(s))));
-    
+
     if s == length(subNo)
         
         %get mean responses
@@ -410,15 +298,14 @@ for s = 1:length(subNo)
         minstim=min(B/1.7);
         maxstim=max(B*1.7);
         yscale = [0 1];
-        % arrange plot
-        subplot(5,5,s+1);
+        
         set(gca,'FontSize',8);
         if type == 1
-            axis([0 25 0 1]);
+            axis([3 25 0 1]);
             set(gca,'XTick',[5 10 15 20]);
         else
-            axis([0 log10(25) 0 1]);
-            set(gca,'XTick',[log10(5) log10(10) log10(15) log10(20)]);
+            axis([log10(3) log10(25) 0 1]);
+            set(gca,'XTick',[log10(3) log10(10) log10(15) log10(20)]);
         end;
         set(gca,'XTickLabel',{ '5' '10' '15' '20' });
         
@@ -460,27 +347,24 @@ for s = 1:length(subNo)
         %         StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
         %             min(StimLe vels))./1000:max(StimLevels)];
         Fit = PF(paramsValues,StimLevelsFine);
-        marker = 'db';
-        plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','b','MarkerEdgeColor','k','MarkerSize',6);
+        marker = 'dr';
+        plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','r','MarkerEdgeColor','r','MarkerSize',4);
         
         hold on;
         
-        plot(StimLevelsFine,Fit,'b','LineWidth',3);
-        
+        plot(StimLevelsFine,Fit,'r','LineWidth',1.5,'LineStyle','-');
+
         set(gca,'FontSize',8);
         if type == 1
-            axis([0 25 0 1]);
+            axis([3 25 0 1]);
             set(gca,'XTick',[5 10 15 20]);
         else
-            axis([0 log10(25) 0 1]);
-            set(gca,'XTick',[log10(5) log10(10) log10(15) log10(20)]);
+            axis([log10(3) log10(25) 0 1]);
+            set(gca,'XTick',[log10(3) log10(10) log10(15) log10(20)]);
         end;
         set(gca,'XTickLabel',{ '5' '10' '15' '20' });
         
-        xlabel('Numbers');
-        ylabel('Portion of Greater Responses');
-        
-        
+
         % arrange plot
         hold on;
         
@@ -522,19 +406,19 @@ for s = 1:length(subNo)
         StimLevelsFine = [minStimLevels:(maxStimLevels-minStimLevels)./1000:maxStimLevels];
 
         Fit = PF(paramsValues,StimLevelsFine);
-        marker = 'dr';
-        plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','r','MarkerEdgeColor','k','MarkerSize',6);
+        marker = 'db';%'ok';
+        plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','b','MarkerEdgeColor','b','MarkerSize',4);
         hold on;
         
-        plot(StimLevelsFine,Fit,'r','LineWidth',3);
+        plot(StimLevelsFine,Fit,'b','LineWidth',1.5,'LineStyle','-');
         
         set(gca,'FontSize',8);
         if type == 1
-            axis([0 25 0 1]);
+            axis([3 25 0 1]);
             set(gca,'XTick',[5 10 15 20]);
         else
-            axis([0 log10(25) 0 1]);
-            set(gca,'XTick',[log10(5) log10(10) log10(15) log10(20)]);
+            axis([log10(3) log10(25) 0 1]);
+            set(gca,'XTick',[log10(3) log10(10) log10(15) log10(20)]);
         end;
         set(gca,'XTickLabel',{ '5' '10' '15' '20' });
         
@@ -578,356 +462,269 @@ for s = 1:length(subNo)
         %         StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
         %             min(StimLevels))./1000:max(StimLevels)];
         Fit = PF(paramsValues,StimLevelsFine);
-        marker = 'db';
-        plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',6);
+        marker = 'dk';%'xk';
+        plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',4);
         
         hold on;
         
-        plot(StimLevelsFine,Fit,'g','LineWidth',3);
+        plot(StimLevelsFine,Fit,'k','LineWidth',1.5,'LineStyle','-');
         
         set(gca,'FontSize',8);
+        
         if type == 1
-            axis([0 25 0 1]);
+            axis([3 25 0 1]);
             set(gca,'XTick',[5 10 15 20]);
         else
-            axis([0 log10(25) 0 1]);
-            set(gca,'XTick',[log10(5) log10(10) log10(15) log10(20)]);
+            axis([log10(3) log10(25) 0 1]);
+            set(gca,'XTick',[log10(3) log10(10) log10(15) log10(20)]);
         end;
         set(gca,'XTickLabel',{ '5' '10' '15' '20' });
         
-        xlabel('Numbers');
-        ylabel('Portion of Greater Responses');
+        
+        
+        h = legend('visual data','visual fit','auditory data','auditory fit','multimodal data','multimodal fit','Location',[0.8,0.5,0.005,0.005],'Fontsize',8);
+        set(h,'PlotBoxAspectRatioMode','manual');
+        set(h,'PlotBoxAspectRatio',[1 0.5 1]);
+        legend(h,'boxoff');
+        
+        box off;
+        set(gcf,'PaperUnits','centimeters');
+        xSize = 6; ySize =3.6;
+        xLeft = (21-xSize)/2; yTop = (30-ySize)/2;
+        set(gcf,'PaperPosition',[xLeft yTop xSize ySize]);
+        set(gcf,'Position',[.5 .5 xSize*50 ySize*50]);
+        
+
+        xlabel('Number', 'Fontsize',8,'Fontweight','bold');
+        ylabel('Greater Responses [%]', 'Fontsize',8,'Fontweight','bold');
         
         
         
-        
-        title('Mean data over all subjects');
-        legend('Visual Data','Visual Fit','Auditory Data','Auditory Fit','Simultaneous Data','Simultaneous Fit');
-        
-        [H,P,CI,STATS] = ttest(wf_vis,wf_aud);
-        disp('Results of ttest between WF for vision and audition:');
-        disp(P);
-        disp(STATS);
-        
-        
-        [H,P,CI,STATS] = ttest(wf_vis,wf_sim);
-        disp('Results of ttest between WF for vision and simultaneous:');
-        disp(P);
-        disp(STATS);
-        
-        
-        
-        [H,P,CI,STATS] = ttest(wf_aud,wf_sim);
-        disp('Results of ttest between WF for auditory and simultaneous:');
-        disp(P);
-        disp(STATS);
-        
-        
-        
-        [H,P,CI,STATS] = ttest(pse_vis,pse_aud);
-        disp('Results of ttest between PSE for vision and audition:');
-        disp(P);
-        disp(STATS);
-        
-        
-        [H,P,CI,STATS] = ttest(pse_vis,pse_sim);
-        disp('Results of ttest between PSE for vision and simultaneous:');
-        disp(P);
-        disp(STATS);
-        
-        
-        
-        [H,P,CI,STATS] = ttest(pse_aud,pse_sim);
-        disp('Results of ttest between PSE for auditory and simultaneous:');
-        disp(P);
-        disp(STATS);
-        
-        
-        
-        
-        disp('Mean WF visual:');
-        disp(mean(wf_vis));
-        disp(wf_vis_mean);
-        
-        disp('Mean WF auditory:');
-        disp(mean(wf_aud));
-        disp(wf_aud_mean);
-        
-        disp('Mean WF simultaneous:');
-        disp(mean(wf_sim));
-        disp(wf_sim_mean);
-        
-        disp('Std visual:');
-        disp(mean(jnd_vis));
-        disp(jnd_vis_mean);
-        
-        
-        disp('Std auditory:');
-        disp(mean(jnd_aud));
-        disp(jnd_aud_mean);
-        
-        disp('Std simultaneous:');
-        disp(mean(jnd_sim));
-        disp(jnd_sim_mean);
-        
-        
-        
-        disp('Mean PSE visual:');
-        disp(mean(pse_vis));
-        disp(pse_vis_mean);
-        
-        disp('Mean PSE auditory:');
-        disp(mean(pse_aud));
-        disp(pse_aud_mean);
-        
-        disp('Mean PSE simultaneous:');
-        disp(mean(pse_sim));
-        disp(pse_sim_mean);
+        img = gcf();
+        imgname = strcat('C:\Users\cavdaros\Desktop\msi paper\psychCurve.tiff');
+        print(img,imgname, '-dtiff', '-r800')
         
     end;
 end
 
-% stdAud = std(wf_aud);
-% stdVis = std(wf_vis);
+%%
+
+%Draw the weber fraction for each modality (aud,vis,sim) along with
+%standard error of mean bars
+
+sem_vis = std(wf_vis)/sqrt(length(subNo));
+sem_aud = std(wf_aud)/sqrt(length(subNo));
+sem_sim = std(wf_sim)/sqrt(length(subNo));
+
+
+mFigure = figure('Color',[1 1 1]);
+
+set(gcf,'numbertitle','off','name','Weber Fraction') %change the title of the figure
+
+
+
+
+
+% Create a uicontrol of type "text"
+% mTextBox = uicontrol('style','text');
+% set(mTextBox,'String','a','Fontweight','bold');
 % 
-% [wA,wV] = findWeights(stdAud,stdVis);
+% % To move the the Text Box around you can set and get the position of Text 
+% %Box itself
+% mTextBoxPosition = get(mTextBox,'Position');
+% set(mTextBox,'Position',[10 230 10 15],'FontSize',8,'Fontweight','bold');
+% % The array mTextBoxPosition has four elements
+% % [x y length height]
 % 
-% disp('Weight of auditory modality according to MLE:');
-% disp(wA);
+% % Something that I find useful is to set the Position Units to Characters, 
+% %the default is pixels
+% set(mTextBox,'Units','characters')
+% % This means a Text Box with 3 lines of text will have a height of 3
+% % Get the Color of the figure window
+colorOfFigureWindow = get(mFigure,'Color');
 % 
-% disp('Weight of visual modality according to MLE:');
-% disp(wV);
-% 
-% stdSim = (stdAud^2*stdVis^2)/(stdAud^2+stdVis^2);
-% disp('Std for simultanoeus case according to MLE:');
-% disp(stdSim);
-% disp('Real std for simultaneous case:');
-% disp(std(wf_sim));
-%[H,P,CI,STATS] = ttest(R2_lin,R2_log); % to test whether log scale fits better than lin scale
+% %Set the BackgroundColor of the text box
+% set(mTextBox,'BackgroundColor',colorOfFigureWindow)
+h = annotation('textbox',[0.01 0.85 0.05 0.15],'String','a','FontSize',8,'Fontweight','bold','BackgroundColor',colorOfFigureWindow,'EdgeColor','none');
 
 
 
-%ttestt betweeb accuracies in auditory and visual and simultaneous
-disp('Mean accuracy auditory:');
-disp(mean(acc_aud));
-disp(acc_aud);
-disp('Std accuracy auditory:');
-disp(std(acc_aud));
+% bar([mean(wf_vis),mean(wf_aud),mean(wf_sim)],'w');
+hold on;
 
-disp('Mean accuracy visual:');
-disp(mean(acc_vis));
-disp(acc_vis);
-disp('Std accuracy visual:');
-disp(std(acc_vis));
-
-disp('Mean accuracy simultaneous:');
-disp(mean(acc_sim));
-disp(acc_sim);
-disp('Std accuracy simultaneous:');
-disp(std(acc_sim));
-
-
-[H,P,CI,STATS] = ttest(acc_aud,acc_vis);
-disp('Results of ttest between accuracy for vision and audition:');
-disp(P);
-disp(STATS);
+sem = [sem_vis sem_aud sem_sim];
+means = [mean(wf_vis) mean(wf_aud) mean(wf_sim)];
+% plot([1,1],[mean(wf_vis)-sem_vis,mean(wf_vis)+sem_vis],'-k','LineWidth',4);
+% plot([2,2],[mean(wf_aud)-sem_aud,mean(wf_aud)+sem_aud],'-k','LineWidth',4);
+% plot([3,3],[mean(wf_sim)-sem_sim,mean(wf_sim)+sem_sim],'-k','LineWidth',4);
+% handles = barweb([accVis,accAud], [semVis,semAud], [], [], [], [], [], bone, [], [], 1, 'axis');
+% handles = barweb([accVis,accAud], [semVis,semAud], 0.3, ['Aud','Vis'], 'Accuracy', 'Modality', 'Accuracy', [0 0 0], 'none', ['auditory','vis'], 2, 'plot');
+barmap=[0.7 0.7 0.7]; %[0.7 0.7 0.7] is grey, [ 0.05 .45 0.1] is green
+colormap(barmap);
+[hBar hErrorbar] = barwitherr(sem', [1 2 3],means');
+set(hErrorbar(1),'LineWidth',1);
 
 
 
-[H,P,CI,STATS] = ttest(acc_aud,acc_sim);
-disp('Results of ttest between accuracy for auditory and simultaneous:');
-disp(P);
-disp(STATS);
+set(gcf,'PaperUnits','centimeters');
+xSize = 6; ySize =3.6;
+xLeft = (21-xSize)/2; yTop = (30-ySize)/2;
+set(gcf,'PaperPosition',[xLeft yTop xSize ySize]);
+set(gcf,'Position',[.5 .5 xSize*50 ySize*50]);
 
-[H,P,CI,STATS] = ttest(acc_vis,acc_sim);
-disp('Results of ttest between accuracy for vision and simultaneous:');
-disp(P);
-disp(STATS);
+set(gca,'FontSize',8,'XTick',[1 2 3],'XTickLabel', {'visual','auditory','multimodal'});
+xlabel('Modality', 'Fontsize',8, 'Fontweight','bold');
+ylabel('Weber Fraction', 'Fontsize',8, 'Fontweight','bold');
+
+
+
+img = gcf();
+imgname = strcat('C:\Users\cavdaros\Desktop\msi paper\wfBars.tiff');
+print(img,imgname, '-dtiff', '-r800') 
 
 
 
 %%
-%test goodness of fit of MLE model
-wa = zeros(length(subNo),1);
-wv = zeros(length(subNo),1);
-sim_est = zeros(length(subNo),1);
-est_sim = zeros(length(subNo),1);
-wf_est_sim = zeros(length(subNo),1);
-for i = 1:length(subNo)
-    var_aud(i,1) = 1/(jnd_aud(i,1)^2);
-    var_vis(i,1) = 1/(jnd_vis(i,1)^2);
-    var_sim(i,1) = 1/(jnd_sim(i,1)^2);
-    
-    wa(i,1) = var_aud(i,1)/(var_aud(i,1)+var_vis(i,1));
-    wv(i,1) = var_vis(i,1)/(var_aud(i,1)+var_vis(i,1));
-    sim_est(i,1) = wa(i,1)*pse_aud(i,1)+wv(i,1)*pse_vis(i,1);
-    
 
-    est_sim(i,1) = sqrt((jnd_aud(i,1)^2)*(jnd_vis(i,1)^2)/(jnd_aud(i,1)^2+jnd_vis(i,1)^2));
-    wf_est_sim(i,1) = sqrt((wf_aud(i,1)^2*wf_vis(i,1)^2)/(wf_aud(i,1)^2+wf_vis(i,1)^2));
-end;
-
-var_aud = 1/(jnd_aud_mean^2);
-var_vis = 1/(jnd_vis_mean^2);
-var_sim = 1/(jnd_sim_mean^2);
-
-weight_aud = var_aud/(var_aud+var_vis);
-weight_vis = var_vis/(var_aud+var_vis);
-
-disp('Auditory weight:');
-disp(weight_aud);
-disp('Visual weight:');
-disp(weight_vis);
-
-% disp('Mean weight for auditory based on thresholds:');
-% disp(mean(est_aud)); 
-% disp('Mean weight for visual based on thresholds:');
-% disp(mean(est_vis));
-%test if the variance estimated with MLE differs significantly from
-%real variance in simultaneous trials
-% disp('est_sim:');
-% disp(est_sim);
-% disp('thres_sim:');
-% disp(thres_sim);
-% [H,P,CI,STATS] = ttest(est_sim,thres_sim);
-% disp('test if mle is a good estimate for simultaneus processing or not:');
-% disp(P);
-% disp(STATS);
-
-
-disp('wf_sim:');
-disp(wf_sim);
-disp('estimate wf_sim:');
-disp(wf_est_sim);
-[H,P,CI,STATS] = ttest(wf_sim,wf_est_sim);
-disp('test if mle is a good estimate for simultaneus processing or not:');
-disp(P);
-disp(STATS);
-
-
-disp('jnd_sim:');
-disp(jnd_sim);
-disp('estimate jnd_sim:');
-disp(est_sim);
-[H,P,CI,STATS] = ttest(jnd_sim,est_sim);
-disp('test if mle is a good estimate for simultaneus processing or not:');
-disp(P);
-disp(STATS);
-
-
-disp('wf_aud:');
-disp(wf_aud);
-disp('wf_vis:');
-disp(wf_vis);
-disp('wf_sim:');
-disp(wf_sim);
-
-
-disp('Goodness of fit values:');
-disp(gof(:,1));
-disp(gof(:,2));
-disp(gof(:,3));
-disp('Correlation coefficients:');
-disp(corrRes(:,1));
-disp(corrRes(:,2));
-disp(corrRes(:,3));
-
-
-[H,P,CI,STATS] = ttest(pse_vis,pse_aud);
-index = find(P<=0.05);
-disp('PSE vis vs. aud');
-disp(index);
-disp(P)
-disp(STATS);
-
-[H,P,CI,STATS] = ttest(pse_vis,pse_sim);
-index = find(P<=0.05);
-disp('PSE vis vs. sim');
-disp(index);
-disp(P);
-disp(STATS);
-
-
-[H,P,CI,STATS] = ttest(pse_aud,pse_sim);
-index = find(P<=0.05);
-disp('PSE aud vs. sim');
-disp(index);
-disp(P);
-disp(STATS);
-
-
-
-%standardized PSEs
+%Draw the weber fraction for each modality (aud,vis,sim) along with
+%standard error of mean bars
 std_pse_vis = (pse_vis-10)./10;
 std_pse_aud = (pse_aud-10)./10;
 std_pse_sim = (pse_sim-10)./10;
 
-[H,P,CI,STATS] = ttest(std_pse_aud,0);
-disp('Standardized PSE aud');
-disp(P);
-disp(STATS);
+sem_vis = std(std_pse_vis)/sqrt(length(subNo));
+sem_aud = std(std_pse_aud)/sqrt(length(subNo));
+sem_sim = std(std_pse_sim)/sqrt(length(subNo));
 
 
-[H,P,CI,STATS] = ttest(std_pse_vis,0);
-disp('Standardized PSE vis');
-disp(P);
-disp(STATS);
+mFigure = figure('Color',[1 1 1]);
+
+set(gcf,'numbertitle','off','name','PSE') %change the title of the figure
 
 
-[H,P,CI,STATS] = ttest(std_pse_sim,0);
-disp('Standardized PSE sim');
-disp(P);
-disp(STATS);
-% disp('sim_est:');
-% disp(sim_est);
-% disp('pse_sim:');
-% disp(pse_sim);
-% [H,P,CI,STATS] = ttest(sim_est,pse_sim);
-% disp('test if mle is a good estimate for simultaneus processing or not:');
-% disp(P);
-% disp(STATS);
+% Create a uicontrol of type "text"
+% mTextBox = uicontrol('style','text');
+% set(mTextBox,'String','a','Fontweight','bold');
+% 
+% % To move the the Text Box around you can set and get the position of Text 
+% %Box itself
+% mTextBoxPosition = get(mTextBox,'Position');
+% set(mTextBox,'Position',[10 230 10 15],'FontSize',8,'Fontweight','bold');
+% % The array mTextBoxPosition has four elements
+% % [x y length height]
+% 
+% % Something that I find useful is to set the Position Units to Characters, 
+% %the default is pixels
+% set(mTextBox,'Units','characters')
+% % This means a Text Box with 3 lines of text will have a height of 3
+% % Get the Color of the figure window
+colorOfFigureWindow = get(mFigure,'Color');
+% 
+% %Set the BackgroundColor of the text box
+% set(mTextBox,'BackgroundColor',colorOfFigureWindow)
+h = annotation('textbox',[0.01 0.85 0.05 0.15],'String','b','FontSize',8,'Fontweight','bold','BackgroundColor',colorOfFigureWindow,'EdgeColor','none');
+
+
+% bar([mean(wf_vis),mean(wf_aud),mean(wf_sim)],'w');
+hold on;
+
+sem = [sem_vis sem_aud sem_sim];
+means = [mean(std_pse_vis) mean(std_pse_aud) mean(std_pse_sim)];
+% plot([1,1],[mean(wf_vis)-sem_vis,mean(wf_vis)+sem_vis],'-k','LineWidth',4);
+% plot([2,2],[mean(wf_aud)-sem_aud,mean(wf_aud)+sem_aud],'-k','LineWidth',4);
+% plot([3,3],[mean(wf_sim)-sem_sim,mean(wf_sim)+sem_sim],'-k','LineWidth',4);
+% handles = barweb([accVis,accAud], [semVis,semAud], [], [], [], [], [], bone, [], [], 1, 'axis');
+% handles = barweb([accVis,accAud], [semVis,semAud], 0.3, ['Aud','Vis'], 'Accuracy', 'Modality', 'Accuracy', [0 0 0], 'none', ['auditory','vis'], 2, 'plot');
+barmap=[0.7 0.7 0.7]; %[0.7 0.7 0.7] is grey, [ 0.05 .45 0.1] is green
+colormap(barmap);
+[hBar hErrorbar] = barwitherr(sem', [1 2 3],means');
+set(hErrorbar(1),'LineWidth',1);
 
 
 
-% disp('Mean sim threshold in real data:');
-% disp(mean(thres_sim));
-% disp('Mean sim threshold estimated by MLE:');
-% disp(mean(est_sim));
+set(gcf,'PaperUnits','centimeters');
+xSize = 6; ySize =3.6;
+xLeft = (21-xSize)/2; yTop = (30-ySize)/2;
+set(gcf,'PaperPosition',[xLeft yTop xSize ySize]);
+set(gcf,'Position',[.5 .5 xSize*50 ySize*50]);
+
+set(gca,'FontSize',8,'XTick',[1 2 3],'XTickLabel', {'visual','auditory','multimodal'});
+xlabel('Modality', 'Fontsize',8, 'Fontweight','bold');
+ylabel('Standardized PSE', 'Fontsize',8, 'Fontweight','bold');
+
+
+
+img = gcf();
+imgname = strcat('C:\Users\cavdaros\Desktop\msi paper\pseBars.tiff');
+print(img,imgname, '-dtiff', '-r800') 
+%%
+
+%Draw the accuracy for each modality (aud,vis,sim) along with
+%standard error of mean bars
+
+sem_vis = std(acc_vis)/sqrt(length(subNo));
+sem_aud = std(acc_aud)/sqrt(length(subNo));
+sem_sim = std(acc_sim)/sqrt(length(subNo));
+
+sem = [sem_vis sem_aud sem_sim];
+means = [mean(acc_vis) mean(acc_aud) mean(acc_sim)];
+
+mFigure = figure('Color',[1 1 1]);
+
+set(gcf,'numbertitle','off','name','Accuracy') %change the title of the figure
+
+
+% Create a uicontrol of type "text"
+% mTextBox = uicontrol('style','text');
+% set(mTextBox,'String','a','Fontweight','bold');
 % 
-% disp('Mean vis threshold in real data:');
-% disp(mean(thres_vis));
-% disp('Mean aud threshold in real data:');
-% disp(mean(thres_aud));
-% disp('Accuracy for small numbers in auditory domain:');
-% disp(mean(mean(acc_aud_pernum(:,1:5))));
-% disp('Accuracy for small numbers in visual domain:');
-% disp(mean(mean(acc_vis_pernum(:,1:5))));
-% disp('Accuracy for small numbers simultaneous:');
-% disp(mean(mean(acc_sim_pernum(:,1:5))));
+% % To move the the Text Box around you can set and get the position of Text 
+% %Box itself
+% mTextBoxPosition = get(mTextBox,'Position');
+% set(mTextBox,'Position',[10 230 10 15],'FontSize',8,'Fontweight','bold');
+% % The array mTextBoxPosition has four elements
+% % [x y length height]
 % 
-% disp('Accuracy for large numbers in auditory domain:');
-% disp(mean(mean(acc_aud_pernum(:,6:10))));
-% disp('Accuracy for large numbers in visual domain:');
-% disp(mean(mean(acc_vis_pernum(:,6:10))));
-% disp('Accuracy for large numbers simultaneous:');
-% disp(mean(mean(acc_sim_pernum(:,6:10))));
+% % Something that I find useful is to set the Position Units to Characters, 
+% %the default is pixels
+% set(mTextBox,'Units','characters')
+% % This means a Text Box with 3 lines of text will have a height of 3
+% % Get the Color of the figure window
+colorOfFigureWindow = get(mFigure,'Color');
+% 
+% %Set the BackgroundColor of the text box
+% set(mTextBox,'BackgroundColor',colorOfFigureWindow)
+h = annotation('textbox',[0.01 0.85 0.05 0.15],'String','c','FontSize',8,'Fontweight','bold','BackgroundColor',colorOfFigureWindow,'EdgeColor','none');
+
+
+
+% bar([mean(acc_vis),mean(acc_aud),mean(acc_sim)],'w');
+hold on;
 % 
 % 
-% 
-% small_acc_aud= mean(acc_aud_pernum(:,1:5));
-% small_acc_vis = mean(acc_vis_pernum(:,1:5));
-% small_acc_sim = mean(acc_sim_pernum(:,1:5));
-% 
-% large_acc_aud= mean(acc_aud_pernum(:,6:10));
-% large_acc_vis = mean(acc_vis_pernum(:,6:10));
-% large_acc_sim = mean(acc_sim_pernum(:,6:10));
-% 
-% disp('test of symmetry for auditory:');
-% [H,P,CI,STATS] = ttest(small_acc_aud,large_acc_aud);
-% disp(P);
-% disp('test of symmetry for visual:');
-% [H,P,CI,STATS] = ttest(small_acc_vis,large_acc_vis);
-% disp(P);
-% disp('test of symmetry for auditory:');
-% [H,P,CI,STATS] = ttest(small_acc_sim,large_acc_sim);
-% disp(P);
+% plot([1,1],[mean(acc_vis)-sem_vis,mean(acc_vis)+sem_vis],'-k','LineWidth',4);
+% plot([2,2],[mean(acc_aud)-sem_aud,mean(acc_aud)+sem_aud],'-k','LineWidth',4);
+% plot([3,3],[mean(acc_sim)-sem_sim,mean(acc_sim)+sem_sim],'-k','LineWidth',4);
+barmap=[0.7 0.7 0.7]; %[0.7 0.7 0.7] is grey, [ 0.05 .45 0.1] is green
+colormap(barmap);
+[hBar hErrorbar] = barwitherr(sem', [1 2 3],means');
+set(hErrorbar(1),'LineWidth',1);
+% errorbar([1 2 3],[mean(acc_vis) mean(acc_aud) mean(acc_sim)],[sem_vis sem_aud sem_sim],'k');
+% handles = barweb([accVis,accAud], [semVis,semAud], [], [], [], [], [], bone, [], [], 1, 'axis');
+% handles = barweb([accVis,accAud], [semVis,semAud], 0.3, ['Aud','Vis'], 'Accuracy', 'Modality', 'Accuracy', [0 0 0], 'none', ['auditory','vis'], 2, 'plot');
+hold off;
+set(gcf,'PaperUnits','centimeters');
+xSize = 6; ySize =3.6;
+xLeft = (21-xSize)/2; yTop = (30-ySize)/2;
+set(gcf,'PaperPosition',[xLeft yTop xSize ySize]);
+set(gcf,'Position',[.5 .5 xSize*50 ySize*50]);
+
+set(gca,'FontSize',8,'XTick',[1 2 3],'XTickLabel', {'visual','auditory','multimodal'});
+xlabel('Modality', 'Fontsize',8, 'Fontweight','bold');
+ylabel('Accuracy [%]', 'Fontsize',8, 'Fontweight','bold');
+
+
+
+img = gcf();
+imgname = strcat('C:\Users\cavdaros\Desktop\msi paper\accBars.tiff');
+print(img,imgname, '-dtiff', '-r800') 

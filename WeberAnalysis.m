@@ -8,7 +8,7 @@ function [WF_log]= WeberAnalysis()
 %Author: Seda Cavdaroglu
 %Date: 19.09.2013
 subNo = 1:1:5;
-type = 3;
+type = 1;
 B = [5,6,7,8,9,11,13,15,17,20];
 wf_aud = zeros(length(subNo),1);
 wf_vis = zeros(length(subNo),1);
@@ -23,8 +23,8 @@ for s = 1:length(subNo)
     elseif type == 2 %open the auditory file
         subj_file = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/log_files/aud_subject_',num2str(subNo(s)),'.txt');
     else %open both files
-        subj_file_vis = strcat('/home/user/project2/Psychophysics/MultiSensory/visualDany/log_files/vis_subject_',num2str(subNo(s)),'.txt');
-        subj_file_aud = strcat('/home/user/project2/Psychophysics/MultiSensory/auditoryDany/log_files/aud_subject_',num2str(subNo(s)),'.txt');
+        subj_file_vis = strcat('/home/user/project2/Psychophysics/MultiSensory/simultaneousDany/log_files/vis_subject_',num2str(subNo(s)),'.txt');
+        subj_file_aud = strcat('/home/user/project2/Psychophysics/MultiSensory/simultaneousDany/log_files/aud_subject_',num2str(subNo(s)),'.txt');
     end;
 
     yscale = [0 100];
@@ -142,7 +142,7 @@ for s = 1:length(subNo)
         A_vis = A_vis';
         A1_vis = A_vis(:,1); %first row of A = numbers used
         A2_vis = A_vis(:,2); %second row of A = responses
-        B = [5,6,7,8,9,11,13,15,17,20];
+        B = [5,6,7,8,9,11,12,14,16,20];
 
 
         refNum = 10;
@@ -423,7 +423,7 @@ for s = 1:length(subNo)
         A_vis = A_vis';
         A1_vis = A_vis(:,1); %first row of A = numbers used
         A2_vis = A_vis(:,2); %second row of A = responses
-        B = [5,6,7,8,9,11,13,15,17,20];
+        B = [5,6,7,8,9,11,12,14,16,20];
 
 
         refNum = 10;

@@ -7,8 +7,7 @@ function [WF_log]= WeberAnalysis_Palamedes()
 
 %Author: Seda Cavdaroglu
 %Date: 19.09.2013
-subNo = [2,3,8,6,7,8,9,10,11,12,13,18,15,16,18,19];
-% subNo = [8,6,7,8,9,10,11,12,13,18,18,19];
+subNo = [2,3,4,6,7,8,9,10,11,12,13,14,15,16,18,19];
 
 B = [5,6,7,8,9,11,13,15,17,20];
 type = 2;%1= linear, 2 = log scale
@@ -22,12 +21,6 @@ wf_sim = zeros(length(subNo),1);
 pse_aud = zeros(length(subNo),1);
 pse_vis = zeros(length(subNo),1);
 pse_sim = zeros(length(subNo),1);
-jnd_aud = zeros(length(subNo),1);
-jnd_vis = zeros(length(subNo),1);
-jnd_sim = zeros(length(subNo),1);
-gof = zeros(length(subNo),3);%holds the pDev values for each subjects goodness of fits
-corrRes = zeros(length(subNo),3);%holds the correlation coefficient between measured and fit values
-
 acc_aud = zeros(length(subNo),1);
 acc_vis = zeros(length(subNo),1);
 acc_sim = zeros(length(subNo),1);
@@ -54,7 +47,7 @@ for s = 1:length(subNo)
     subj_file_aud = strcat('C:\Users\cavdaros\Desktop\MultiSensory_Final\auditoryDany\log_files\aud_subject_',num2str(subNo(s)),'.txt');
     subj_file_sim = strcat('C:\Users\cavdaros\Desktop\MultiSensory_Final\simultaneousDany\log_files\sim_subject_',num2str(subNo(s)),'.txt');
     
-
+    
     fid_aud = fopen(subj_file_aud);
     A_aud = fscanf(fid_aud, '%g %g', [2 inf]);
     fclose(fid_aud);
@@ -187,32 +180,36 @@ for s = 1:length(subNo)
     %Palamedes function
     if type == 1
         StimLevels = B;
-        paramsValues = [11 0.2 0 0];
+        paramsValues_75 = [11 0.2 0.5 0];
+        paramsValues_50 = [11 0.2 0 0];
         maxStimLevels = 25;
     else
         StimLevels =log10(B);
-        paramsValues = [1.1 6 0 0];
+        paramsValues_75 = [1.1 6 0.5 0];
+        paramsValues_50 = [1.1 6 0 0];
         maxStimLevels = log10(25);
     end;
     NumPos = num_greater_resp_vis(:,s)';
     OutOfNum = num_total_resp_vis(:,s)';
     PF = @PAL_CumulativeNormal;
     
-    paramsFree = [1 1 0 0];
-    [paramsValues LL exitflag] = PAL_PFML_Fit(StimLevels,...
-        NumPos,OutOfNum,paramsValues,paramsFree,PF);
-
-    
-    thresh = PAL_CumulativeNormal(paramsValues,.75,'inverse');
-
+    paramsFree_75 = [1 1 0.5 0];
+    paramsFree_50 = [1 1 0 0];
+    [paramsValues_75 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+        NumPos,OutOfNum,paramsValues_75,paramsFree_75,PF);
+    [paramsValues_50 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+        NumPos,OutOfNum,paramsValues_50,paramsFree_50,PF);
     if type == 1
-        pse_vis(s,1) = paramsValues(1);
-        jnd_vis(s,1) = abs(paramsValues(1)-thresh);
-        wf_vis(s,1) = jnd_vis(s,1)/10;
+        wf_vis(s,1) = abs(paramsValues_50(1)-paramsValues_75(1))/10;
+        thres_vis(s,1) = abs(paramsValues_50(1)-paramsValues_75(1));
+        pse_vis(s,1) = paramsValues_50(1);
+        %wf_vis(s,1) = paramsValues_75(1)/75;
     else
-        pse_vis(s,1) = 10^paramsValues(1);
-        jnd_vis(s,1) = 10^abs(paramsValues(1)-thresh);
-        wf_vis(s,1) = jnd_vis(s,1)/10; 
+        wf_vis(s,1) = abs(10^paramsValues_50(1)-10^paramsValues_75(1))/10;
+        thres_vis(s,1) = abs(10^paramsValues_75(1)-10^paramsValues_50(1)); 
+        pse_vis(s,1) = 10^paramsValues_50(1);
+        %wf_vis(s,1) = abs(10-10^paramsValues_75(1))/10;
+        %wf_vis(s,1) = (10^paramsValues_75(1))/75;
     end
     
     
@@ -224,14 +221,8 @@ for s = 1:length(subNo)
     StimLevelsFine = [minStimLevels:(maxStimLevels-minStimLevels)./1000:maxStimLevels];
     %     StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
     %         min(StimLevels))./1000:max(StimLevels)];
-    Fit = PF(paramsValues,StimLevelsFine);
-    [dev pDev devSim converged] = PAL_PFML_GoodnessOfFit(StimLevels, NumPos, OutOfNum,...
-        paramsValues, paramsFree, 4, PF);
-    Fit2 = PF(paramsValues,StimLevels);
-    x = [PropCorrectData' Fit2'];
-    [a,b] = corr(x);
-    corrRes(s,1) = a(1,2);
-    gof(s,1) = pDev;
+    Fit = PF(paramsValues_75,StimLevelsFine);
+    
     
     marker = 'db';
     plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','b','MarkerEdgeColor','k','MarkerSize',6);
@@ -258,31 +249,34 @@ for s = 1:length(subNo)
     %Palamedes function
     if type == 1
         StimLevels = B;
-        paramsValues = [11 0.2 0 0];
+        paramsValues_75 = [11 0.2 0.5 0];
+        paramsValues_50 = [11 0.2 0 0];
         maxStimLevels = 25;
     else
         StimLevels =log10(B);
-        paramsValues = [1.1 6 0 0];
+        paramsValues_75 = [1.1 6 0.5 0];
+        paramsValues_50 = [1.1 6 0 0];
         maxStimLevels = log10(25);
     end;
     
     NumPos = num_greater_resp_aud(:,s)';
     OutOfNum = num_total_resp_aud(:,s)';
     PF = @PAL_CumulativeNormal;
-    paramsFree = [1 1 0 0];
-    [paramsValues LL exitflag] = PAL_PFML_Fit(StimLevels,...
-        NumPos,OutOfNum,paramsValues,paramsFree,PF);
-
-    thresh = PAL_CumulativeNormal(paramsValues,.75,'inverse');
-
+    paramsFree_75 = [1 1 0.5 0];
+    paramsFree_50 = [1 1 0 0];
+    [paramsValues_75 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+        NumPos,OutOfNum,paramsValues_75,paramsFree_75,PF);
+    [paramsValues_50 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+        NumPos,OutOfNum,paramsValues_50,paramsFree_50,PF);
     if type == 1
-        pse_aud(s,1) = paramsValues(1);
-        jnd_aud(s,1) = abs(paramsValues(1)-thresh);
-        wf_aud(s,1) = jnd_aud(s,1)/10;
+        wf_aud(s,1) = abs(paramsValues_50(1)-paramsValues_75(1))/10;
+        thres_aud(s,1) = abs(paramsValues_50(1)-paramsValues_75(1));
+        pse_aud(s,1) = paramsValues_50(1);
     else
-        pse_aud(s,1) = 10^paramsValues(1);
-        jnd_aud(s,1) = 10^abs(paramsValues(1)-thresh);
-        wf_aud(s,1) = jnd_aud(s,1)/10; 
+        wf_aud(s,1) = abs(10^paramsValues_50(1)-10^paramsValues_75(1))/10;
+        thres_aud(s,1) = abs(10^paramsValues_75(1)-10^paramsValues_50(1)); 
+        pse_aud(s,1) = 10^paramsValues_50(1);
+
     end
     
 %     disp(strcat('Weber Fraction in log scale for audition for subject',num2str(subNo(s))));
@@ -293,15 +287,7 @@ for s = 1:length(subNo)
     StimLevelsFine = [minStimLevels:(maxStimLevels-minStimLevels)./1000:maxStimLevels];
     %     StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
     %         min(StimLevels))./1000:max(StimLevels)];
-    Fit = PF(paramsValues,StimLevelsFine);
-    
-    [dev pDev devSim converged] = PAL_PFML_GoodnessOfFit(StimLevels, NumPos, OutOfNum,...
-        paramsValues, paramsFree, 4, PF);
-    gof(s,2) = pDev;
-    Fit2 = PF(paramsValues,StimLevels);
-    x = [PropCorrectData' Fit2'];
-    [a,b] = corr(x);
-    corrRes(s,2) = a(1,2);
+    Fit = PF(paramsValues_75,StimLevelsFine);
     
     marker = 'dr';
     plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','r','MarkerEdgeColor','k','MarkerSize',6);
@@ -324,33 +310,36 @@ for s = 1:length(subNo)
     %Palamedes function
     if type == 1
         StimLevels = B;
-        paramsValues = [11 0.2 0 0];
-        
+        paramsValues_75 = [11 0.2 0.5 0];
+        paramsValues_50 = [11 0.2 0 0];
         maxStimLevels = 25;
     else
         StimLevels =log10(B);
-        paramsValues = [1.1 6 0 0];
-        
+        paramsValues_75 = [1.1 6 0.5 0];
+        paramsValues_50 = [1.1 6 0 0];
         maxStimLevels = log10(25);
     end;
     NumPos = num_greater_resp_sim(:,s)';
     OutOfNum = num_total_resp_sim(:,s)';
     PF = @PAL_CumulativeNormal;
     
-    paramsFree = [1 1 0 0];
-    [paramsValues LL exitflag] = PAL_PFML_Fit(StimLevels,...
-        NumPos,OutOfNum,paramsValues,paramsFree,PF);
-
-    thresh = PAL_CumulativeNormal(paramsValues,.75,'inverse');
-
+    paramsFree_75 = [1 1 0.5 0];
+    paramsFree_50 = [1 1 0 0];
+    [paramsValues_75 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+        NumPos,OutOfNum,paramsValues_75,paramsFree_75,PF);
+    [paramsValues_50 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+        NumPos,OutOfNum,paramsValues_50,paramsFree_50,PF);
     if type == 1
-        pse_sim(s,1) = paramsValues(1);
-        jnd_sim(s,1) = abs(paramsValues(1)-thresh);
-        wf_sim(s,1) = jnd_sim(s,1)/10;
+        wf_sim(s,1) = abs(paramsValues_50(1)-paramsValues_75(1))/10;
+        thres_sim(s,1) = abs(paramsValues_75(1)-paramsValues_50(1));
+        pse_sim(s,1) = paramsValues_50(1);
+        %wf_sim(s,1) = paramsValues_75(1)/75;
     else
-        pse_sim(s,1) = 10^paramsValues(1);
-        jnd_sim(s,1) = 10^abs(paramsValues(1)-thresh);
-        wf_sim(s,1) = jnd_sim(s,1)/10; 
+        wf_sim(s,1) = abs(10^paramsValues_50(1)-10^paramsValues_75(1))/10;
+        thres_sim(s,1) = abs(10^paramsValues_75(1)-10^paramsValues_50(1)); 
+        pse_sim(s,1) = 10^paramsValues_50(1);
+        %         wf_sim(s,1) = abs(10-10^paramsValues_75(1))/10;
+        %wf_sim(s,1) = (10^paramsValues_75(1))/75;
     end
     
     
@@ -362,15 +351,8 @@ for s = 1:length(subNo)
     StimLevelsFine = [minStimLevels:(maxStimLevels-minStimLevels)./1000:maxStimLevels];
     %     StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
     %         min(StimLevels))./1000:max(StimLevels)];
-    Fit = PF(paramsValues,StimLevelsFine);
-    Fit2 = PF(paramsValues,StimLevels);
-    x = [PropCorrectData' Fit2'];
-    [a,b] = corr(x);
-    corrRes(s,3) = a(1,2);
+    Fit = PF(paramsValues_75,StimLevelsFine);
     
-    [dev pDev devSim converged] = PAL_PFML_GoodnessOfFit(StimLevels, NumPos, OutOfNum,...
-        paramsValues, paramsFree, 4, PF);
-    gof(s,3) = pDev;
     
     marker = 'db';
     plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',6);
@@ -426,32 +408,39 @@ for s = 1:length(subNo)
         %Palamedes function
         if type == 1
             StimLevels = B;
-            paramsValues = [11 0.2 0 0];
+            paramsValues_75 = [11 0.2 0.5 0];
+            paramsValues_50 = [11 0.2 0 0];
             maxStimLevels = 25;
         else
             StimLevels =log10(B);
-            paramsValues = [1.1 6 0 0];
+            paramsValues_75 = [1.1 6 0.5 0];
+            paramsValues_50 = [1.1 6 0 0];
             maxStimLevels = log10(25);
         end;
         NumPos = sum_greater_resp_vis;
         OutOfNum = sum_total_resp_vis';
         PF = @PAL_CumulativeNormal;
         
-        paramsFree = [1 1 0 0];
-        [paramsValues LL exitflag] = PAL_PFML_Fit(StimLevels,...
-            NumPos,OutOfNum,paramsValues,paramsFree,PF);
-        
-        thresh = PAL_CumulativeNormal(paramsValues,.75,'inverse');
+        paramsFree_75 = [1 1 0.5 0];
+        paramsFree_50 = [1 1 0 0];
+        [paramsValues_75 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+            NumPos,OutOfNum,paramsValues_75,paramsFree_75,PF);
+        [paramsValues_50 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+            NumPos,OutOfNum,paramsValues_50,paramsFree_50,PF);
         
         if type == 1
-            pse_vis_mean = paramsValues(1);
-            jnd_vis_mean = abs(paramsValues(1)-thresh);
-            wf_vis_mean = jnd_vis_mean/10;
+            wf_mean_vis = abs(paramsValues_50(1)-paramsValues_75(1))/10;
+            thres_mean_vis = abs(paramsValues_50(1)-paramsValues_75(1));
+            pse_mean_vis = paramsValues_50(1);
+            %wf_aud(s,1) = paramsValues_75(1)/75;
         else
-            pse_vis_mean = 10^paramsValues(1);
-            jnd_vis_mean = 10^abs(paramsValues(1)-thresh);
-            wf_vis_mean = jnd_vis_mean/10;
+            wf_mean_vis = abs(10^paramsValues_50(1)-10^paramsValues_75(1))/10;
+            thres_mean_vis = abs(10^paramsValues_75(1)-10^paramsValues_50(1)); 
+            pse_mean_vis = 10^paramsValues_50(1);
+            %         wf_aud(s,1) = abs(10-10^paramsValues_75(1))/10;
+            %wf_aud(s,1) = (10^paramsValues_75(1))/75;
         end
+        
         
         PropCorrectData = NumPos./OutOfNum;
         minStimLevels = 0;
@@ -459,7 +448,7 @@ for s = 1:length(subNo)
         StimLevelsFine = [minStimLevels:(maxStimLevels-minStimLevels)./1000:maxStimLevels];
         %         StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
         %             min(StimLe vels))./1000:max(StimLevels)];
-        Fit = PF(paramsValues,StimLevelsFine);
+        Fit = PF(paramsValues_75,StimLevelsFine);
         marker = 'db';
         plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','b','MarkerEdgeColor','k','MarkerSize',6);
         
@@ -487,41 +476,43 @@ for s = 1:length(subNo)
         %Palamedes function
         if type == 1
             StimLevels = B;
-            paramsValues = [11 0.2 0 0];
+            paramsValues_75 = [11 0.2 0.5 0];
+            paramsValues_50 = [11 0.2 0 0];
             maxStimLevels = 25;
         else
             StimLevels =log10(B);
-            paramsValues = [1.1 6 0 0];
+            paramsValues_75 = [1.1 6 0.5 0];
+            paramsValues_50 = [1.1 6 0 0];
             maxStimLevels = log10(25);
         end;
         NumPos = sum_greater_resp_aud;
         OutOfNum = sum_total_resp_aud';
         PF = @PAL_CumulativeNormal;
         
-        paramsFree = [1 1 0 0];
-        [paramsValues LL exitflag] = PAL_PFML_Fit(StimLevels,...
-            NumPos,OutOfNum,paramsValues,paramsFree,PF);
+        paramsFree_75 = [1 1 0.5 0];
+        paramsFree_50 = [1 1 0 0];
+        [paramsValues_75 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+            NumPos,OutOfNum,paramsValues_75,paramsFree_75,PF);
+        [paramsValues_50 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+            NumPos,OutOfNum,paramsValues_50,paramsFree_50,PF);
         PropCorrectData = NumPos./OutOfNum;
         minStimLevels = 0;
-        
-        
-        
-        thresh = PAL_CumulativeNormal(paramsValues,.75,'inverse');
-        
         if type == 1
-            pse_aud_mean = paramsValues(1);
-            jnd_aud_mean = abs(paramsValues(1)-thresh);
-            wf_aud_mean = jnd_aud_mean/10;
+            wf_mean_aud = abs(paramsValues_50(1)-paramsValues_75(1))/10;
+            thres_mean_aud = abs(paramsValues_50(1)-paramsValues_75(1));
+            pse_mean_aud = paramsValues_50(1);
+            %wf_aud(s,1) = paramsValues_75(1)/75;
         else
-            pse_aud_mean = 10^paramsValues(1);
-            jnd_aud_mean = 10^abs(paramsValues(1)-thresh);
-            wf_aud_mean = jnd_aud_mean/10;
+            wf_mean_aud = abs(10^paramsValues_50(1)-10^paramsValues_75(1))/10;
+            thres_mean_aud = abs(10^paramsValues_75(1)-10^paramsValues_75(1)); 
+            pse_mean_aud = 10^paramsValues_50(1);
+            %         wf_aud(s,1) = abs(10-10^paramsValues_75(1))/10;
+            %wf_aud(s,1) = (10^paramsValues_75(1))/75;
         end
-        
-        
         StimLevelsFine = [minStimLevels:(maxStimLevels-minStimLevels)./1000:maxStimLevels];
-
-        Fit = PF(paramsValues,StimLevelsFine);
+        %         StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
+        %             min(StimLevels))./1000:max(StimLevels)];
+        Fit = PF(paramsValues_75,StimLevelsFine);
         marker = 'dr';
         plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','r','MarkerEdgeColor','k','MarkerSize',6);
         hold on;
@@ -543,41 +534,43 @@ for s = 1:length(subNo)
         %Palamedes function
         if type == 1
             StimLevels = B;
-            paramsValues = [11 0.2 0 0];
+            paramsValues_75 = [11 0.2 0.5 0];
+            paramsValues_50 = [11 0.2 0 0];
             maxStimLevels = 25;
         else
             StimLevels =log10(B);
-            paramsValues = [1.1 6 0 0];
+            paramsValues_75 = [1.1 6 0.5 0];
+            paramsValues_50 = [1.1 6 0 0];
             maxStimLevels = log10(25);
         end;
         NumPos = sum_greater_resp_sim;
         OutOfNum = sum_total_resp_sim';
         PF = @PAL_CumulativeNormal;
         
-        paramsFree = [1 1 0 0];
-        [paramsValues LL exitflag] = PAL_PFML_Fit(StimLevels,...
-            NumPos,OutOfNum,paramsValues,paramsFree,PF);
+        paramsFree_75 = [1 1 0.5 0];
+        paramsFree_50 = [1 1 0 0];
+        [paramsValues_75 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+            NumPos,OutOfNum,paramsValues_75,paramsFree_75,PF);
+        [paramsValues_50 LL exitflag] = PAL_PFML_Fit(StimLevels,...
+            NumPos,OutOfNum,paramsValues_50,paramsFree_50,PF);
         PropCorrectData = NumPos./OutOfNum;
         minStimLevels = 0;
-
-        
-        thresh = PAL_CumulativeNormal(paramsValues,.75,'inverse');
-        
         if type == 1
-            pse_sim_mean = paramsValues(1);
-            jnd_sim_mean = abs(paramsValues(1)-thresh);
-            wf_sim_mean = jnd_sim_mean/10;
+            wf_mean_sim = abs(paramsValues_50(1)-paramsValues_75(1))/10;
+            thres_mean_sim = abs(paramsValues_50(1)-paramsValues_75(1));
+            pse_mean_sim = paramsValues_50(1);
+            %wf_aud(s,1) = paramsValues_75(1)/75;
         else
-            pse_sim_mean = 10^paramsValues(1);
-            jnd_sim_mean = 10^abs(paramsValues(1)-thresh);
-            wf_sim_mean = jnd_sim_mean/10;
+            wf_mean_sim = abs(10^paramsValues_50(1)-10^paramsValues_75(1))/10;
+            thres_mean_sim = abs(10^paramsValues_75(1)-10^paramsValues_50(1)); 
+            pse_mean_sim = paramsValues_50(1);
+            %         wf_aud(s,1) = abs(10-10^paramsValues_75(1))/10;
+            %wf_aud(s,1) = (10^paramsValues_75(1))/75;
         end
-        
-        
         StimLevelsFine = [minStimLevels:(maxStimLevels-minStimLevels)./1000:maxStimLevels];
         %         StimLevelsFine = [min(StimLevels):(max(StimLevels)-...
         %             min(StimLevels))./1000:max(StimLevels)];
-        Fit = PF(paramsValues,StimLevelsFine);
+        Fit = PF(paramsValues_75,StimLevelsFine);
         marker = 'db';
         plot(StimLevels,PropCorrectData,marker,'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',6);
         
@@ -624,65 +617,28 @@ for s = 1:length(subNo)
         
         
         
-        [H,P,CI,STATS] = ttest(pse_vis,pse_aud);
-        disp('Results of ttest between PSE for vision and audition:');
-        disp(P);
-        disp(STATS);
-        
-        
-        [H,P,CI,STATS] = ttest(pse_vis,pse_sim);
-        disp('Results of ttest between PSE for vision and simultaneous:');
-        disp(P);
-        disp(STATS);
-        
-        
-        
-        [H,P,CI,STATS] = ttest(pse_aud,pse_sim);
-        disp('Results of ttest between PSE for auditory and simultaneous:');
-        disp(P);
-        disp(STATS);
-        
-        
-        
-        
         disp('Mean WF visual:');
         disp(mean(wf_vis));
-        disp(wf_vis_mean);
+        disp(wf_mean_vis);
         
         disp('Mean WF auditory:');
         disp(mean(wf_aud));
-        disp(wf_aud_mean);
+        disp(wf_mean_aud);
         
         disp('Mean WF simultaneous:');
         disp(mean(wf_sim));
-        disp(wf_sim_mean);
+        disp(wf_mean_sim);
         
         disp('Std visual:');
-        disp(mean(jnd_vis));
-        disp(jnd_vis_mean);
+        disp(thres_mean_vis);
         
         
         disp('Std auditory:');
-        disp(mean(jnd_aud));
-        disp(jnd_aud_mean);
+        disp(thres_mean_aud);
         
         disp('Std simultaneous:');
-        disp(mean(jnd_sim));
-        disp(jnd_sim_mean);
+        disp(thres_mean_sim);
         
-        
-        
-        disp('Mean PSE visual:');
-        disp(mean(pse_vis));
-        disp(pse_vis_mean);
-        
-        disp('Mean PSE auditory:');
-        disp(mean(pse_aud));
-        disp(pse_aud_mean);
-        
-        disp('Mean PSE simultaneous:');
-        disp(mean(pse_sim));
-        disp(pse_sim_mean);
         
     end;
 end
@@ -710,19 +666,16 @@ end
 %ttestt betweeb accuracies in auditory and visual and simultaneous
 disp('Mean accuracy auditory:');
 disp(mean(acc_aud));
-disp(acc_aud);
 disp('Std accuracy auditory:');
 disp(std(acc_aud));
 
 disp('Mean accuracy visual:');
 disp(mean(acc_vis));
-disp(acc_vis);
 disp('Std accuracy visual:');
 disp(std(acc_vis));
 
 disp('Mean accuracy simultaneous:');
 disp(mean(acc_sim));
-disp(acc_sim);
 disp('Std accuracy simultaneous:');
 disp(std(acc_sim));
 
@@ -748,36 +701,28 @@ disp(STATS);
 
 %%
 %test goodness of fit of MLE model
-wa = zeros(length(subNo),1);
-wv = zeros(length(subNo),1);
-sim_est = zeros(length(subNo),1);
+est_aud = zeros(length(subNo),1);
+est_vis = zeros(length(subNo),1);
 est_sim = zeros(length(subNo),1);
 wf_est_sim = zeros(length(subNo),1);
 for i = 1:length(subNo)
-    var_aud(i,1) = 1/(jnd_aud(i,1)^2);
-    var_vis(i,1) = 1/(jnd_vis(i,1)^2);
-    var_sim(i,1) = 1/(jnd_sim(i,1)^2);
+    var_aud = 1/(thres_aud(s,1)^2);
+    var_vis = 1/(thres_aud(s,1)^2);
+    var_sim = 1/(thres_aud(s,1)^2);
     
-    wa(i,1) = var_aud(i,1)/(var_aud(i,1)+var_vis(i,1));
-    wv(i,1) = var_vis(i,1)/(var_aud(i,1)+var_vis(i,1));
-    sim_est(i,1) = wa(i,1)*pse_aud(i,1)+wv(i,1)*pse_vis(i,1);
-    
-
-    est_sim(i,1) = sqrt((jnd_aud(i,1)^2)*(jnd_vis(i,1)^2)/(jnd_aud(i,1)^2+jnd_vis(i,1)^2));
+    est_sim(i,1) = sqrt((thres_aud(i,1)^2)*(thres_vis(i,1)^2)/(thres_aud(i,1)^2+thres_vis(i,1)^2));
+%     disp('Auditory threshold:');
+%     disp(thres_aud(i,1));
+%     disp('Visual threshold:');
+%     disp(thres_vis(i,1));
+%     disp('Simultaneous threshold:');
+%     disp(thres_sim(i,1));
+%     disp('Simultaneous estimated threshold:');
+%     disp(est_sim(i,1));
+%     est_aud(i,1) = var_aud/(var_aud+var_vis);
+%     est_vis(i,1) = var_vis/(var_aud+var_vis);
     wf_est_sim(i,1) = sqrt((wf_aud(i,1)^2*wf_vis(i,1)^2)/(wf_aud(i,1)^2+wf_vis(i,1)^2));
 end;
-
-var_aud = 1/(jnd_aud_mean^2);
-var_vis = 1/(jnd_vis_mean^2);
-var_sim = 1/(jnd_sim_mean^2);
-
-weight_aud = var_aud/(var_aud+var_vis);
-weight_vis = var_vis/(var_aud+var_vis);
-
-disp('Auditory weight:');
-disp(weight_aud);
-disp('Visual weight:');
-disp(weight_vis);
 
 % disp('Mean weight for auditory based on thresholds:');
 % disp(mean(est_aud)); 
@@ -803,89 +748,6 @@ disp(wf_est_sim);
 disp('test if mle is a good estimate for simultaneus processing or not:');
 disp(P);
 disp(STATS);
-
-
-disp('jnd_sim:');
-disp(jnd_sim);
-disp('estimate jnd_sim:');
-disp(est_sim);
-[H,P,CI,STATS] = ttest(jnd_sim,est_sim);
-disp('test if mle is a good estimate for simultaneus processing or not:');
-disp(P);
-disp(STATS);
-
-
-disp('wf_aud:');
-disp(wf_aud);
-disp('wf_vis:');
-disp(wf_vis);
-disp('wf_sim:');
-disp(wf_sim);
-
-
-disp('Goodness of fit values:');
-disp(gof(:,1));
-disp(gof(:,2));
-disp(gof(:,3));
-disp('Correlation coefficients:');
-disp(corrRes(:,1));
-disp(corrRes(:,2));
-disp(corrRes(:,3));
-
-
-[H,P,CI,STATS] = ttest(pse_vis,pse_aud);
-index = find(P<=0.05);
-disp('PSE vis vs. aud');
-disp(index);
-disp(P)
-disp(STATS);
-
-[H,P,CI,STATS] = ttest(pse_vis,pse_sim);
-index = find(P<=0.05);
-disp('PSE vis vs. sim');
-disp(index);
-disp(P);
-disp(STATS);
-
-
-[H,P,CI,STATS] = ttest(pse_aud,pse_sim);
-index = find(P<=0.05);
-disp('PSE aud vs. sim');
-disp(index);
-disp(P);
-disp(STATS);
-
-
-
-%standardized PSEs
-std_pse_vis = (pse_vis-10)./10;
-std_pse_aud = (pse_aud-10)./10;
-std_pse_sim = (pse_sim-10)./10;
-
-[H,P,CI,STATS] = ttest(std_pse_aud,0);
-disp('Standardized PSE aud');
-disp(P);
-disp(STATS);
-
-
-[H,P,CI,STATS] = ttest(std_pse_vis,0);
-disp('Standardized PSE vis');
-disp(P);
-disp(STATS);
-
-
-[H,P,CI,STATS] = ttest(std_pse_sim,0);
-disp('Standardized PSE sim');
-disp(P);
-disp(STATS);
-% disp('sim_est:');
-% disp(sim_est);
-% disp('pse_sim:');
-% disp(pse_sim);
-% [H,P,CI,STATS] = ttest(sim_est,pse_sim);
-% disp('test if mle is a good estimate for simultaneus processing or not:');
-% disp(P);
-% disp(STATS);
 
 
 
